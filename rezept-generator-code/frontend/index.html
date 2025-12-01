@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Rezept Inspiration – Startseite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #container {
+            max-width: 600px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #0077cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        .btn:hover {
+            background: #005fa3;
+        }
+        #rezept-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background: #fafafa;
+        }
+        #rezept-titel {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        #rezept-details {
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <h1>Rezept Inspiration</h1>
+
+    <button class="btn" onclick="ladeZufall()">Zufallsrezept anzeigen</button>
+    <button class="btn" onclick="location.href='all.html'">Alle Rezepte</button>
+
+    <div id="rezept-box" style="display:none;">
+        <div id="rezept-titel"></div>
+        <div id="rezept-details"></div>
+    </div>
+</div>
+
+<script>
+async function ladeZufall() {
+    const res = await fetch("http://127.0.0.1:8000/zufall");
+    const data = await res.json();
+
+    const box = document.getElementById("rezept-box");
+    const titel = document.getElementById("rezept-titel");
+    const details = document.getElementById("rezept-details");
+
+    titel.textContent = data["Rezept Name"] || "Kein Name";
+    details.textContent = data["Details"] || " ";
+
+    box.style.display = "block";
+}
+
+// Beim Laden der Seite direkt ein Rezept anzeigen
+window.onload = ladeZufall;
+</script>
+
+</body>
+</html>
