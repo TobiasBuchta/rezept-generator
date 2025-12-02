@@ -53,8 +53,10 @@
 </div>
 
 <script>
+const API_URL = "https://rezept-generator.onrender.com"; // Live-Backend auf Render
+
 async function ladeZufall() {
-    const res = await fetch("http://127.0.0.1:8000/zufall");
+    const res = await fetch(`${API_URL}/zufall`);
     const data = await res.json();
 
     const box = document.getElementById("rezept-box");

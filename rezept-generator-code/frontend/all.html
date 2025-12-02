@@ -78,12 +78,14 @@
 <table id="recipes-table"></table>
 
 <script>
+const API_URL = "https://rezept-generator.onrender.com"; // Live-Backend auf Render
+
 let originalData = [];
 let filteredData = [];
 let sortState = {}; // Sortierstatus pro Spalte
 
 async function loadData() {
-    const res = await fetch("http://127.0.0.1:8000/all");
+    const res = await fetch(`${API_URL}/all`);
     const data = await res.json();
 
     originalData = data;
@@ -97,7 +99,7 @@ async function loadData() {
 // CSV Download
 // ----------------------------------------------
 document.getElementById("download-btn").onclick = () => {
-    window.location.href = "http://127.0.0.1:8000/download";
+    window.location.href = `${API_URL}/download`;
 };
 
 // ----------------------------------------------
@@ -166,7 +168,7 @@ async function deleteRow(filteredIndex) {
 
     if (!confirm("Sure you want to delete this entry?")) return;
 
-    await fetch(`http://127.0.0.1:8000/delete/${realIndex}`, {
+    await fetch(`${API_URL}/delete/${realIndex}`, {
         method: "DELETE"
     });
 
@@ -177,7 +179,7 @@ async function deleteRow(filteredIndex) {
 // Eingabeformular dynamisch erzeugen
 // ----------------------------------------------
 async function renderAddForm() {
-    const res = await fetch("http://127.0.0.1:8000/columns");
+    const res = await fetch(`${API_URL}/columns`);
     const columns = await res.json();
 
     const form = document.getElementById("add-form");
@@ -198,7 +200,7 @@ async function renderAddForm() {
             formData[col] = form.querySelector(`[name="${col}"]`).value;
         });
 
-        const saveRes = await fetch("http://127.0.0.1:8000/add", {
+        const saveRes = await fetch(`${API_URL}/add`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)

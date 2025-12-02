@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import csv
+import os
 
 # Gewichteter Zufallsalgorithmus
 from algorithmus import gewichtetes_zufallsrezept
@@ -15,7 +16,9 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-DB_FILE = "rezepte.csv"
+# Datei-Pfad IMMER relativ zum Backend-Folder – egal ob Render oder lokal
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(BASE_DIR, "rezepte.csv")
 
 
 # -------------------------
@@ -78,7 +81,7 @@ def delete_rezept(row_index: int):
 
 @app.get("/")
 def root():
-    return {"msg": "Backend läuft lokal!"}
+    return {"msg": "Backend läuft!"}
 
 
 @app.get("/all")
@@ -113,4 +116,5 @@ def zufall():
             "Details": ""
         }
 
+        # Rückgabe des Ergebnisses des Algorithmus
     return gewichtetes_zufallsrezept(rezepte)
