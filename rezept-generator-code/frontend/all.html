@@ -50,7 +50,7 @@
             border: 1px solid #ddd;
             background: #fafafa;
         }
-        #download-btn {
+        #download-btn, #upload-btn {
             padding: 6px 12px;
             border: 1px solid #444;
             background: #ddd;
@@ -63,9 +63,16 @@
 
 <h1>
     <a href="index.html" style="text-decoration:none; margin-right:10px; font-size:24px;">🏠</a>
-    Alle Rezepte
+    All Recipes
     <button id="download-btn">Download CSV</button>
 </h1>
+
+<div id="upload-container">
+    <h3>CSV hochladen</h3>
+    <input type="file" id="upload-file" accept=".csv">
+    <button id="upload-btn">Upload</button>
+    <p id="upload-status"></p>
+</div>
 
 <div id="add-container">
     <h3>Rezept hinzufügen</h3>
@@ -77,7 +84,7 @@
 <table id="recipes-table"></table>
 
 <script>
-const API_URL = "https://rezept-generator.onrender.com"; // deine Render-URL hier
+const API_URL = "https://rezept-generator.onrender.com"; // Dein Backend auf Render
 
 let originalData = [];
 let filteredData = [];
@@ -94,16 +101,34 @@ async function loadData() {
     renderAddForm();
 }
 
-// ----------------------------------------------
 // CSV Download
-// ----------------------------------------------
 document.getElementById("download-btn").onclick = () => {
     window.location.href = `${API_URL}/download`;
 };
 
-// ----------------------------------------------
+// CSV Upload
+document.getElementById("upload-btn").onclick = async () => {
+    const fileInput = document.getElementById("upload-file");
+    if (!fileInput.files.length) {
+        alert("Bitte wähle eine CSV-Datei aus!");
+        return;
+    }
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API_URL}/upload_csv`, {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await res.json();
+    document.getElementById("upload-status").innerText = data.msg;
+
+    await loadData(); // Tabelle neu laden
+};
+
 // Tabelle zeichnen
-// ----------------------------------------------
 function renderTable() {
     const table = document.getElementById("recipes-table");
     if (filteredData.length === 0) {
@@ -112,7 +137,6 @@ function renderTable() {
     }
 
     const columns = Object.keys(filteredData[0]);
-
     let html = "<tr>";
 
     // Kopfzeile mit Sort
@@ -127,11 +151,9 @@ function renderTable() {
         `;
     });
 
-    // Spalte für Löschen
     html += `<th>Löschen</th>`;
     html += "</tr>";
 
-    // Zeilen
     filteredData.forEach((row, idx) => {
         html += "<tr>";
         columns.forEach(col => {
@@ -144,9 +166,7 @@ function renderTable() {
     table.innerHTML = html;
 }
 
-// ----------------------------------------------
 // Sortieren
-// ----------------------------------------------
 function sortColumn(col) {
     if (!sortState[col] || sortState[col] === "desc") {
         sortState[col] = "asc";
@@ -155,17 +175,13 @@ function sortColumn(col) {
         sortState[col] = "desc";
         filteredData.sort((a, b) => (b[col] || "").localeCompare(a[col] || ""));
     }
-
     renderTable();
 }
 
-// ----------------------------------------------
 // Zeile löschen
-// ----------------------------------------------
 async function deleteRow(filteredIndex) {
     const realIndex = originalData.indexOf(filteredData[filteredIndex]);
-
-    if (!confirm("Willst du diesen Eintrag wirklich löschen?")) return;
+    if (!confirm("Sure you want to delete this entry?")) return;
 
     await fetch(`${API_URL}/delete/${realIndex}`, {
         method: "DELETE"
@@ -174,9 +190,7 @@ async function deleteRow(filteredIndex) {
     await loadData();
 }
 
-// ----------------------------------------------
-// Eingabeformular erzeugen
-// ----------------------------------------------
+// Eingabeformular dynamisch erzeugen
 async function renderAddForm() {
     const res = await fetch(`${API_URL}/columns`);
     const columns = await res.json();

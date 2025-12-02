@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 import csv
 import os
+import shutil
 
 # Gewichteter Zufallsalgorithmus
 from algorithmus import gewichtetes_zufallsrezept
@@ -79,6 +79,7 @@ def delete_rezept(row_index: int):
 # -------------------------
 # API Endpoints
 # -------------------------
+
 @app.get("/")
 def root():
     return {"msg": "Backend läuft!"}
@@ -120,11 +121,20 @@ def zufall():
 
 
 # -------------------------
-# CSV Download Endpoint
+# CSV Upload: ersetzt die bestehende Datei
 # -------------------------
-@app.get("/download")
-def download_csv():
-    """
-    Liefert die gesamte CSV-Datei zum direkten Download aus.
-    """
-    return FileResponse(DB_FILE, media_type="text/csv", filename="rezepte.csv")
+@app.post("/upload_csv")
+async def upload_csv(file: UploadFile = File(...)):
+    if not file.filename.endswith(".csv"):
+        return {"msg": "Nur CSV-Dateien erlaubt"}
+
+    temp_path = os.path.join(BASE_DIR, "temp.csv")
+
+    # Datei zwischenspeichern
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Überschreiben der alten CSV
+    shutil.move(temp_path, DB_FILE)
+
+    return {"msg": f"{file.filename} erfolgreich hochgeladen und ersetzt!"}
