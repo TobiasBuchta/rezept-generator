@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import csv
 import os
 
@@ -78,7 +79,6 @@ def delete_rezept(row_index: int):
 # -------------------------
 # API Endpoints
 # -------------------------
-
 @app.get("/")
 def root():
     return {"msg": "Backend läuft!"}
@@ -116,5 +116,15 @@ def zufall():
             "Details": ""
         }
 
-        # Rückgabe des Ergebnisses des Algorithmus
     return gewichtetes_zufallsrezept(rezepte)
+
+
+# -------------------------
+# CSV Download Endpoint
+# -------------------------
+@app.get("/download")
+def download_csv():
+    """
+    Liefert die gesamte CSV-Datei zum direkten Download aus.
+    """
+    return FileResponse(DB_FILE, media_type="text/csv", filename="rezepte.csv")
